@@ -1,0 +1,31 @@
+name: Discord DM Forwarder - Ultra Sık Yeniden Başlat (15dk)
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'         # HER 15 DAKİKADA BİR (0,15,30,45'te)
+  workflow_dispatch:               # Elle başlatmak için
+
+jobs:
+  run-selfbot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Repo'yu çek
+        uses: actions/checkout@v4
+
+      - name: Python 3.11 kur
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Bağımlılıkları yükle
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Selfbot'u çalıştır (maks ~14 dk)
+        env:
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+        run: timeout 14m python main.py || true
+        # 14 dakika → GitHub'un 6 saat sınırı içinde, ama sık restart için düşük
