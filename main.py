@@ -12,13 +12,10 @@ if not TOKEN or not WEBHOOK_URL:
     print("DISCORD_TOKEN veya WEBHOOK_URL eksik!")
     exit(1)
 
-intents = discord.Intents.default()
-intents.messages = True
-intents.dm_messages = True
+# Intents'i kaldırıyoruz – selfbot için gerekli değil ve hata veriyor
+client = discord.Client()  # ← intents parametresi yok!
 
-client = discord.Client(intents=intents)
-
-last_dm_time = None  # Son DM zamanı takip
+last_dm_time = None
 
 @client.event
 async def on_ready():
@@ -26,7 +23,6 @@ async def on_ready():
     last_dm_time = datetime.utcnow()
     print(f"{client.user} giriş yaptı → DM'leri dinliyorum...")
 
-    # Periyodik check loop (test için)
     client.loop.create_task(periodic_check())
 
 @client.event
@@ -41,7 +37,7 @@ async def on_message(message: discord.Message):
     last_dm_time = datetime.utcnow()
 
     async with aiohttp.ClientSession() as session:
-        webhook = Webhook.from_url(WEBHOOK_URL, session=session)  # ← adapter yok, direkt session!
+        webhook = Webhook.from_url(WEBHOOK_URL, session=session)
 
         embed = discord.Embed(
             description=message.content or "*Mesaj içeriği yok (embed/sticker olabilir)*",
@@ -67,7 +63,6 @@ async def on_message(message: discord.Message):
             content="**Yeni DM geldi!**",
             embed=embed,
             username="DM Bildirim Botu",
-            # avatar_url="..." istersen ekle
         )
 
         print(f"Yönlendirildi → {message.author}: {message.content[:60]}...")
